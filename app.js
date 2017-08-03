@@ -25,7 +25,7 @@ app.use(function (err, req, res, next) {
   res.render('error', {error: err})
 })
 
-models.db.sync()
+models.db.sync({force: true})
   .then(()=>app.listen(port, function () {
       console.log(`listening on port ${port}...`)
     }))
