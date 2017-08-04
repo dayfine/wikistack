@@ -1,7 +1,7 @@
 var Sequelize = require('sequelize')
-var db = new Sequelize(
-  'wikistack','dayfine', null,
-  {dialect:'postgres', logging: false})
+const db = new Sequelize('postgres://localhost:5432/wikistack', {
+    logging: false
+});
 
 db.authenticate()
   .then(()=>console.log('connected'))
@@ -52,5 +52,7 @@ const User = db.define('user', {
     unique: true
   }
 })
+
+Page.belongsTo(User, { as: 'author' })
 
 module.exports = { Page, User, db }

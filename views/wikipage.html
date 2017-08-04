@@ -2,11 +2,11 @@
 
 {% block content %}
   <h3>{{page.title}}<small> (<a href="{{page.route}}/similar">Similar</a>)</small></h3>
-  <h4>by <a href="PLACEHOLDER-AUTHOR-URL">PLACEHOLDER AUTHOR NAME</a></h4>
+  <h4>by <a href="/users/{{page.author.id}}">{{page.author.name}}</a></h4>
   <div>PLACEHOLDER TAG LIST</div>
 
   <hr>
-    <div><a href="{{page.route}}/??????">????????????</a></div>
+    <div><a href="/users/{{page.author.id}}">{{page.author.name}}</a></div>
     <div class="page-body">{{page.content}}</div>
   <hr>
 
