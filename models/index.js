@@ -1,14 +1,14 @@
 var Sequelize = require('sequelize')
 const db = new Sequelize('postgres://localhost:5432/wikistack', {
-    logging: false
+  logging: false
 });
 
 db.authenticate()
-  .then(()=>console.log('connected'))
+  .then(() => console.log('connected'))
   .catch(console.error)
 
 const Page = db.define('page', {
-  title   : {
+  title: {
     type: Sequelize.STRING,
     allowNull: false,
     unique: true
@@ -17,35 +17,48 @@ const Page = db.define('page', {
     type: Sequelize.STRING,
     allowNull: false
   },
-  content : {
+  content: {
     type: Sequelize.TEXT,
     allowNull: false
   },
-  status  : {
-    type: Sequelize.ENUM('open','closed')
+  status: {
+    type: Sequelize.ENUM('open', 'closed')
   },
-  date    : {
+  tags: {
+    type: Sequelize.ARRAY(Sequelize.STRING)
+  },
+  date: {
     type: Sequelize.DATE,
     defaultValue: Sequelize.NOW
   }
 }, {
     getterMethods: {
-      route(){ return '/wiki/' + this.urlTitle }
+      route() { return '/wiki/' + this.urlTitle }
     }
-})
+  })
 
-Page.beforeValidate((page, options)=>{
+Page.findByTag = function (tag) {
+  return Page.findAll({
+    where:  {
+      tags: {
+        $overlap: [tag]
+      }
+    }
+  })
+}
+
+Page.beforeValidate((page, options) => {
   page.urlTitle = page.title
-                  ? page.title.replace(/\s+/g, '_').replace(/\W/g, '')
-                  : Math.random().toString(36).substring(2, 7)
+    ? page.title.replace(/\s+/g, '_').replace(/\W/g, '')
+    : Math.random().toString(36).substring(2, 7)
 })
 
 const User = db.define('user', {
-  name  : {
+  name: {
     type: Sequelize.STRING,
     allowNull: false
   },
-  email : {
+  email: {
     type: Sequelize.STRING,
     allowNull: false,
     validate: { isEmail: true },
