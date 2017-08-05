@@ -60,23 +60,30 @@ router
   })
 
   .put('/:urlTitle', function (req, res, next) {
-    const method = 'PUT'
-    // needs to see what route to use for update,
-    // and also to disable author info
-    res.render('addpage', {page: req.page, method})
+    req.page.update({
+      title: req.body.title.trim(),
+      content: req.body.content,
+      tags: req.body.tags,
+      status: req.body.status
+    })
+    .then(UpdatedPage => res.redirect(UpdatedPage.route))
+    .catch(next)
   })
 
   .delete('/:urlTitle', function (req, res, next) {
     req.page.destroy()
     .then(() => res.redirect('/'))
+    .catch(next)
+  })
+
+  .get('/:urlTitle/edit', function (req, res, next) {
+    const edit = true
+    res.render('addpage', {page: req.page, edit})
   })
 
   .get('/:urlTitle/similar', function (req, res, next) {
     req.page.findSimilar()
-    .then(pages => {
-      console.log(pages)
-      res.render('index', { pages })
-    })
+    .then(pages => res.render('index', { pages }))
     .catch(next)
   })
 
