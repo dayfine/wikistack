@@ -5,13 +5,17 @@ const
   morgan = require('morgan'),
   nunjucks = require('nunjucks'),
   port = process.env.PORT || 3000,
-  Promise = require('bluebird')
+  Promise = require('bluebird'),
+  env = nunjucks.configure('views', { noCache: true }),
+  AutoEscapeExtension = require("nunjucks-autoescape")(nunjucks)
+
 
 Promise.config({ longStackTraces: true })
+env.addExtension('AutoEscapeExtension', new AutoEscapeExtension(env))
 
 app.set('view engine', 'html')
 app.engine('html', nunjucks.render)
-nunjucks.configure('views', { noCache: true })
+
 
 app.use(morgan('dev'))
 app.use(require('body-parser').urlencoded({ extended: false }))
@@ -42,13 +46,13 @@ models.db.sync({ force: true })
   }))
   .then(() => models.Page.create({
     title: 'page no title',
-    content: 'blablabla',
+    content: '# RPOARJOAJ **blablabla**',
     tags: ['three', 'two'],
     authorId: 1
   }))
   .then(() => models.Page.create({
     title: 'page ha title',
-    content: 'blabldaqweabla',
+    content: 'blabldaqweabla [[page no title]]',
     tags: ['three', 'four'],
     authorId: 1
   }))

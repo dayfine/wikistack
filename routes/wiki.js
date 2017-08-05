@@ -10,7 +10,9 @@ router
   })
 
   .post('/', function (req, res, next) {
-    const tags = req.body.tags.split(/\s*,\s*/g)
+    const
+      tags = req.body.tags.split(/\s*,\s*/g),
+      status = req.body.status ? 'open' : 'closed'
 
     User.findOrCreate({ where: { name: req.body.name, email: req.body.email } })
     .then(results => {
@@ -20,12 +22,12 @@ router
           title: req.body.title,
           content: req.body.content,
           tags: tags,
+          status: status,
           authorId: user.id
         })
 
-      return page.save().then(page => {
-        return page.setAuthor(user)
-      })
+      return page.save()
+        .then(page => page.setAuthor(user))
     })
     .then(savedPage => res.redirect(savedPage.route))
     .catch(next)
@@ -52,6 +54,16 @@ router
     })
     .then(page => res.render('wikipage', { page }))
     .catch(next)
+  })
+
+  .put('/:urlTitle', function (req, res, next) {
+    //with the existing info filled out
+    res.render('addpage')
+  })
+
+  .delete('/:urlTitle', function (req, res, next) {
+    //just delete, and redirect somewhere
+    res.redirect('/')
   })
 
   .get('/:urlTitle/similar', function (req, res, next) {

@@ -1,5 +1,6 @@
 const
   Sequelize = require('sequelize'),
+  marked = require('marked'),
 // const db = new Sequelize('postgres://localhost:5432/wikistack', {
 //   logging: false
 // })
@@ -37,20 +38,32 @@ const Page = db.define('page', {
   }
 }, {
     getterMethods: {
-      route() { return '/wiki/' + this.urlTitle }
+      route(){return '/wiki/' + this.urlTitle} ,
+      renderedContent(){
+        const
+          rendered = this.content.replace(/\[\[(.*?)\]\]/g, (match, p1) => {
+            return '<a href="/wiki/' + urlize(p1) + '">' + p1 + '</a>'
+          })
+        return marked(rendered)
+      }
     }
-  })
+})
 
 Page.findByTag = tag => Page.findAll({ where: { tags: {$overlap: [tag]} } })
+
 Page.prototype.findSimilar = (tags, id) => {
   return Page.findAll({ where: { tags: {$overlap: tags} , id: {$ne: id}}})
 }
 
 Page.beforeValidate((page, options) => {
-  page.urlTitle = page.title
-    ? page.title.replace(/\s+/g, '_').replace(/\W/g, '')
-    : Math.random().toString(36).substring(2, 7)
+  page.urlTitle = urlize(page.title)
 })
+
+function urlize(title){
+  return title
+    ? title.replace(/\s+/g, '_').replace(/\W/g, '')
+    : Math.random().toString(36).substring(2, 7)
+}
 
 const User = db.define('user', {
   name: {

@@ -13,9 +13,11 @@
     "bluebird": "^3.5.0",
     "body-parser": "^1.17.2",
     "express": "^4.15.3",
+    "marked": "^0.3.6",
     "method-override": "^2.3.9",
     "morgan": "^1.8.2",
     "nunjucks": "^3.0.1",
+    "nunjucks-autoescape": "^1.0.1",
     "pg": "^6.4.1",
     "pg-hstore": "^2.3.2",
     "sequelize": "^4.4.2"
