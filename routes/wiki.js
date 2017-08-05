@@ -10,24 +10,18 @@ router
   })
 
   .post('/', function (req, res, next) {
-    const
-      tags = req.body.tags.split(/\s*,\s*/g),
-      status = req.body.status ? 'open' : 'closed'
-
-    User.findOrCreate({ where: { name: req.body.name, email: req.body.email } })
-    .then(results => {
-      const
-        user = results[0]
-        page = Page.build({
-          title: req.body.title,
-          content: req.body.content,
-          tags: tags,
-          status: status,
-          authorId: user.id
-        })
-
-      return page.save()
-        .then(page => page.setAuthor(user))
+    User.findOrCreate({
+      where: { name: req.body.name, email: req.body.email }
+    })
+    .spread((user, metadata) => {
+      return Page.create({
+        title: req.body.title.trim(),
+        content: req.body.content,
+        tags: req.body.tags,
+        status: req.body.status,
+        authorId: user.id
+      })
+      .then(page => page.setAuthor(user))
     })
     .then(savedPage => res.redirect(savedPage.route))
     .catch(next)
@@ -47,32 +41,37 @@ router
     }
   })
 
-  .get('/:urlTitle', function (req, res, next) {
-    Page.findOne({
-      where: { urlTitle: req.params.urlTitle },
+  .param('urlTitle', function (req, res, next, url) {
+    req.resolveUrl = Page.findOne({
+      where: { urlTitle: url },
       include: [{ model: User, as: 'author' }]
     })
+    next()
+  })
+
+  .get('/:urlTitle', function (req, res, next) {
+    req.resolveUrl
     .then(page => res.render('wikipage', { page }))
     .catch(next)
   })
 
   .put('/:urlTitle', function (req, res, next) {
-    //with the existing info filled out
-    res.render('addpage')
+    // needs more work to keep tags/status
+    req.resolveUrl
+    .then(page => res.render('addpage', {page}))
+    .catch(next)
   })
 
   .delete('/:urlTitle', function (req, res, next) {
-    //just delete, and redirect somewhere
+    req.resolveUrl
+    .then(page => page.destroy())
     res.redirect('/')
   })
 
   .get('/:urlTitle/similar', function (req, res, next) {
-    Page.findOne({
-      where: { urlTitle: req.params.urlTitle },
-      include: [{ model: User, as: 'author' }]
-    })
+    req.resolveUrl
     .then(page => page.findSimilar(page.tags, page.id))
-    .then(pages => res.render('index',{pages}))
+    .then(pages => res.render('index', { pages }))
     .catch(next)
   })
 

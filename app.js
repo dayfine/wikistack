@@ -7,8 +7,7 @@ const
   port = process.env.PORT || 3000,
   Promise = require('bluebird'),
   env = nunjucks.configure('views', { noCache: true }),
-  AutoEscapeExtension = require("nunjucks-autoescape")(nunjucks)
-
+  AutoEscapeExtension = require('nunjucks-autoescape')(nunjucks)
 
 Promise.config({ longStackTraces: true })
 env.addExtension('AutoEscapeExtension', new AutoEscapeExtension(env))
@@ -16,12 +15,10 @@ env.addExtension('AutoEscapeExtension', new AutoEscapeExtension(env))
 app.set('view engine', 'html')
 app.engine('html', nunjucks.render)
 
-
 app.use(morgan('dev'))
 app.use(require('body-parser').urlencoded({ extended: false }))
 app.use(require('method-override')('_method'))
 app.use(express.static('public'))
-
 
 app.use('/', require('./routes'))
 app.use(function (err, req, res, next) {
@@ -38,23 +35,9 @@ models.db.sync({ force: true })
     name: 'Barto',
     email: 'barto@molina.com'
   }))
-  .then(() => models.Page.create({
-    title: 'page title',
-    content: 'blablabla',
-    tags: ['one', 'two'],
-    authorId: 1
-  }))
-  .then(() => models.Page.create({
-    title: 'page no title',
-    content: '# RPOARJOAJ **blablabla**',
-    tags: ['three', 'two'],
-    authorId: 1
-  }))
-  .then(() => models.Page.create({
-    title: 'page ha title',
-    content: 'blabldaqweabla [[page no title]]',
-    tags: ['three', 'four'],
-    authorId: 1
-  }))
+  .then(() => models.Page.bulkCreate([
+    {title: 'page 1', content: '#blablabla', tags: ['one', 'two'], authorId: 1, status: 'open'},
+    {title: 'page 2', content: '**blaba**', tags: ['three', 'two'], authorId: 1, status: 'open'},
+    {title: 'page 3', content: 'bla [[page 2]]', tags: ['three'], authorId: 1, status: 'closed'}
+  ], {validate: true, individualHooks: true}))
   .catch(console.error)
-

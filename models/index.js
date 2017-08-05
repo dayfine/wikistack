@@ -1,12 +1,12 @@
 const
   Sequelize = require('sequelize'),
   marked = require('marked'),
-// const db = new Sequelize('postgres://localhost:5432/wikistack', {
-//   logging: false
-// })
-  db = new Sequelize(
-    'wikistack','dayfine', null,
-    {dialect:'postgres', logging: false})
+  db = new Sequelize('postgres://localhost:5432/wikistack', {
+    logging: false
+  })
+  // db = new Sequelize(
+  //   'wikistack', 'dayfine', null,
+  //   {dialect: 'postgres', logging: false})
 
 db.authenticate()
   .then(() => console.log('connected'))
@@ -20,7 +20,8 @@ const Page = db.define('page', {
   },
   urlTitle: {
     type: Sequelize.STRING,
-    allowNull: false
+    allowNull: false,
+    unique: true
   },
   content: {
     type: Sequelize.TEXT,
@@ -30,36 +31,42 @@ const Page = db.define('page', {
     type: Sequelize.ENUM('open', 'closed')
   },
   tags: {
-    type: Sequelize.ARRAY(Sequelize.STRING)
+    type: Sequelize.ARRAY(Sequelize.STRING),
+    set (values) {
+      const arr = typeof values === 'string'
+        ? values.split(/\s*,\s*/g)
+        : values
+      this.setDataValue('tags', arr)
+    }
   },
   date: {
     type: Sequelize.DATE,
     defaultValue: Sequelize.NOW
   }
 }, {
-    getterMethods: {
-      route(){return '/wiki/' + this.urlTitle} ,
-      renderedContent(){
-        const
+  getterMethods: {
+    route () { return '/wiki/' + this.urlTitle },
+    renderedContent () {
+      const
           rendered = this.content.replace(/\[\[(.*?)\]\]/g, (match, p1) => {
             return '<a href="/wiki/' + urlize(p1) + '">' + p1 + '</a>'
           })
-        return marked(rendered)
-      }
+      return marked(rendered)
     }
+  }
 })
 
 Page.findByTag = tag => Page.findAll({ where: { tags: {$overlap: [tag]} } })
 
 Page.prototype.findSimilar = (tags, id) => {
-  return Page.findAll({ where: { tags: {$overlap: tags} , id: {$ne: id}}})
+  return Page.findAll({ where: { tags: {$overlap: tags}, id: {$ne: id}}})
 }
 
 Page.beforeValidate((page, options) => {
   page.urlTitle = urlize(page.title)
 })
 
-function urlize(title){
+function urlize (title) {
   return title
     ? title.replace(/\s+/g, '_').replace(/\W/g, '')
     : Math.random().toString(36).substring(2, 7)

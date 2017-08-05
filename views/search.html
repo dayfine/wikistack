@@ -23,7 +23,7 @@
   <h3>Search Results</h3>
   <ul class="list-unstyled">
     {% for page in pages %}
-      <li><a href="/.{{page.route}}">{{page.title}}</a></li>
+      <li><a href="{{page.route}}">{{page.title}}</a></li>
     {% endfor %}
   </ul>
 {% endblock %}

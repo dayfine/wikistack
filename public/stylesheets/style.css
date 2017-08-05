@@ -6,3 +6,9 @@ body {
 a {
   color: #00B7FF;
 }
+.bootstrap-tagsinput {
+    width: 100%;
+}
+.label {
+    line-height: 2 !important;
+}
