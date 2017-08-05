@@ -42,36 +42,41 @@ router
   })
 
   .param('urlTitle', function (req, res, next, url) {
-    req.resolveUrl = Page.findOne({
+    Page.findOne({
       where: { urlTitle: url },
       include: [{ model: User, as: 'author' }]
     })
-    next()
+    .then(function (page) {
+      if (!page) return res.render('error', {error: new Error('bad page')})
+
+      req.page = page
+      next()
+    })
+    .catch(next)
   })
 
   .get('/:urlTitle', function (req, res, next) {
-    req.resolveUrl
-    .then(page => res.render('wikipage', { page }))
-    .catch(next)
+    res.render('wikipage', { page: req.page })
   })
 
   .put('/:urlTitle', function (req, res, next) {
-    // needs more work to keep tags/status
-    req.resolveUrl
-    .then(page => res.render('addpage', {page}))
-    .catch(next)
+    const method = 'PUT'
+    // needs to see what route to use for update,
+    // and also to disable author info
+    res.render('addpage', {page: req.page, method})
   })
 
   .delete('/:urlTitle', function (req, res, next) {
-    req.resolveUrl
-    .then(page => page.destroy())
-    res.redirect('/')
+    req.page.destroy()
+    .then(() => res.redirect('/'))
   })
 
   .get('/:urlTitle/similar', function (req, res, next) {
-    req.resolveUrl
-    .then(page => page.findSimilar(page.tags, page.id))
-    .then(pages => res.render('index', { pages }))
+    req.page.findSimilar()
+    .then(pages => {
+      console.log(pages)
+      res.render('index', { pages })
+    })
     .catch(next)
   })
 

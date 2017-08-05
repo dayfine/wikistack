@@ -8,6 +8,11 @@ const
   //   'wikistack', 'dayfine', null,
   //   {dialect: 'postgres', logging: false})
 
+  /**
+   * Note the implicit dependency of pg, and the fact that
+   * here it is using v6.4, as v6.9 was giving sequelize errors
+   */
+
 db.authenticate()
   .then(() => console.log('connected'))
   .catch(console.error)
@@ -56,15 +61,15 @@ const Page = db.define('page', {
   }
 })
 
-Page.findByTag = tag => Page.findAll({ where: { tags: {$overlap: [tag]} } })
-
-Page.prototype.findSimilar = (tags, id) => {
-  return Page.findAll({ where: { tags: {$overlap: tags}, id: {$ne: id}}})
-}
-
 Page.beforeValidate((page, options) => {
   page.urlTitle = urlize(page.title)
 })
+
+Page.findByTag = tag => Page.findAll({ where: { tags: {$overlap: [tag]} } })
+
+Page.prototype.findSimilar = function () {
+  return Page.findAll({ where: { tags: {$overlap: this.tags}, id: {$ne: this.id}}})
+}
 
 function urlize (title) {
   return title
