@@ -12,26 +12,23 @@ router
   .post('/', function (req, res, next) {
     const tags = req.body.tags.split(/\s*,\s*/g)
 
-    User.findOrCreate({
-      where: {
-        name: req.body.name,
-        email: req.body.email
-      }
-    })
-      .then(results => {
-        const user = results[0]
-        const page = Page.build({
+    User.findOrCreate({ where: { name: req.body.name, email: req.body.email } })
+    .then(results => {
+      const
+        user = results[0]
+        page = Page.build({
           title: req.body.title,
           content: req.body.content,
           tags: tags,
           authorId: user.id
         })
-        return page.save().then(page => {
-          return page.setAuthor(user)
-        })
+
+      return page.save().then(page => {
+        return page.setAuthor(user)
       })
-      .then(savedPage => res.redirect(savedPage.route))
-      .catch(next);
+    })
+    .then(savedPage => res.redirect(savedPage.route))
+    .catch(next)
   })
 
   .get('/add', function (req, res, next) {
@@ -39,11 +36,13 @@ router
   })
 
   .get('/search', function (req, res, next) {
-    const tag = req.query.tag
-    Page.findByTag(tag)
-      .then(pages => {
-        res.render('search', { pages })
-      })
+    if (req.query.tag) {
+      Page.findByTag(req.query.tag)
+      .then(pages => res.render('search', { pages }))
+      .catch(next)
+    } else {
+      res.render('search')
+    }
   })
 
   .get('/:urlTitle', function (req, res, next) {
@@ -51,11 +50,18 @@ router
       where: { urlTitle: req.params.urlTitle },
       include: [{ model: User, as: 'author' }]
     })
-      .then(objPage => {
-        res.render('wikipage', { page: objPage.dataValues })
-      })
-      .catch(next)
+    .then(page => res.render('wikipage', { page }))
+    .catch(next)
   })
 
+  .get('/:urlTitle/similar', function (req, res, next) {
+    Page.findOne({
+      where: { urlTitle: req.params.urlTitle },
+      include: [{ model: User, as: 'author' }]
+    })
+    .then(page => page.findSimilar(page.tags, page.id))
+    .then(pages => res.render('index',{pages}))
+    .catch(next)
+  })
 
 module.exports = router

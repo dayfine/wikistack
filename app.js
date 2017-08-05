@@ -40,5 +40,17 @@ models.db.sync({ force: true })
     tags: ['one', 'two'],
     authorId: 1
   }))
+  .then(() => models.Page.create({
+    title: 'page no title',
+    content: 'blablabla',
+    tags: ['three', 'two'],
+    authorId: 1
+  }))
+  .then(() => models.Page.create({
+    title: 'page ha title',
+    content: 'blabldaqweabla',
+    tags: ['three', 'four'],
+    authorId: 1
+  }))
   .catch(console.error)
 

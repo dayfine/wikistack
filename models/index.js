@@ -1,7 +1,11 @@
-var Sequelize = require('sequelize')
-const db = new Sequelize('postgres://localhost:5432/wikistack', {
-  logging: false
-});
+const
+  Sequelize = require('sequelize'),
+// const db = new Sequelize('postgres://localhost:5432/wikistack', {
+//   logging: false
+// })
+  db = new Sequelize(
+    'wikistack','dayfine', null,
+    {dialect:'postgres', logging: false})
 
 db.authenticate()
   .then(() => console.log('connected'))
@@ -37,14 +41,9 @@ const Page = db.define('page', {
     }
   })
 
-Page.findByTag = function (tag) {
-  return Page.findAll({
-    where:  {
-      tags: {
-        $overlap: [tag]
-      }
-    }
-  })
+Page.findByTag = tag => Page.findAll({ where: { tags: {$overlap: [tag]} } })
+Page.prototype.findSimilar = (tags, id) => {
+  return Page.findAll({ where: { tags: {$overlap: tags} , id: {$ne: id}}})
 }
 
 Page.beforeValidate((page, options) => {
